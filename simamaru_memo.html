@@ -19,6 +19,14 @@ body{
 @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:translateY(0);opacity:1}}
 .container{max-width:860px;margin:0 auto}
 .header{text-align:center;margin-bottom:18px}
+.header-image{
+  width:120px;
+  height:120px;
+  object-fit:cover;
+  border-radius:50%;
+  margin-bottom:6px;
+  box-shadow:0 4px 12px rgba(0,0,0,.15)
+}
 .header-bird{font-size:48px;margin-bottom:4px}
 .header-title{font-size:22px;font-weight:900;color:#8a2c5a;letter-spacing:1px}
 .header-sub{font-size:13px;color:#d4789a;margin-top:4px}
@@ -253,11 +261,11 @@ body{
 </head>
 <body>
 <div class="container">
-<div class="header">
-  <img src="shimamaru.jpg" class="header-image">
-  <div class="header-title">しままるのおしごとメモ</div>
-  <div class="header-sub">ジュリリ！ひなタスクつきだよ！</div>
-</div>
+  <div class="header">
+    <img src="shimamaru.jpg" class="header-image" alt="しままる">
+    <div class="header-title">しままるのおしごとメモ</div>
+    <div class="header-sub">ジュリリ！ひなタスクつきだよ！</div>
+  </div>
 
   <div id="alert-area"></div>
 
@@ -1224,7 +1232,7 @@ function modalAdd(){
     history: [],
     createdAt: now,
     updatedAt: now
-  });
+    });
   recordHistory(task, 'create');
   tasks.push(task);
 
