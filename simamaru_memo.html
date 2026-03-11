@@ -167,8 +167,9 @@ body{
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal-weekday{text-align:center;font-size:12px;font-weight:700;padding:4px 0}
 .cal-day{
-  border-radius:10px;padding:5px 3px;text-align:center;min-height:62px;cursor:pointer;transition:all .15s;
-  background:#fafcff;border:2px solid transparent;position:relative
+  border-radius:10px;padding:5px 3px;text-align:center;height:62px;cursor:pointer;transition:all .15s;
+  background:#fafcff;border:2px solid transparent;position:relative;
+  min-width:0;overflow:hidden
 }
 .cal-day:active{transform:scale(.97)}
 .cal-day.has-task{background:#fde8f2}
