@@ -75,11 +75,12 @@ body{
 }
 .progress-sub{font-size:12px;color:#a6788b;margin-top:8px}
 
+.type-filter-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap}
 .task-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 .task-empty{text-align:center;padding:40px 20px;color:#b0c4de;font-size:14px}
 .task-row{
   padding:14px 16px;display:flex;align-items:flex-start;gap:12px;animation:fadeIn .22s ease;
-  scroll-margin-top:16px
+  scroll-margin-top:16px;flex-wrap:wrap
 }
 .task-row.done{opacity:.72;background:#f8f9fa}
 .task-main{flex:1;min-width:0}
@@ -103,30 +104,37 @@ body{
 .progress-pill{
   font-size:12px;font-weight:800;background:#fff0f8;color:#c04d7d;padding:3px 10px;border-radius:20px
 }
+.task-badge{background:#f5efff;color:#7d5bd9;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
+.event-badge{background:#eef8ff;color:#5b8bd9;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
 
-.subtask-box{margin-top:12px;padding:12px}
+.task-list.title-only .task-note,
+.task-list.title-only .task-meta,
+.task-list.title-only .subtask-outer{display:none}
+
+.subtask-outer{flex-basis:100%;margin-top:4px}
+.subtask-box{margin-top:0;padding:12px}
 .subtask-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 .subtask-title{font-size:13px;font-weight:800;color:#8a2c5a}
 .subtask-list{display:flex;flex-direction:column;gap:8px}
 .subtask-row{
   display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:#fafbff
 }
-.subtask-name{font-size:13px;flex:1}
+.subtask-name{font-size:13px;flex:1;word-break:break-word}
 .subtask-name.done{text-decoration:line-through;opacity:.6}
-.subtask-check{width:18px;height:18px;accent-color:#e8629a}
+.subtask-check{width:18px;height:18px;accent-color:#e8629a;flex-shrink:0}
 .subtask-del{
-  border:none;border-radius:8px;background:#fff0f0;color:#ff7b7b;padding:5px 8px;cursor:pointer
+  border:none;border-radius:8px;background:#fff0f0;color:#ff7b7b;padding:5px 8px;cursor:pointer;flex-shrink:0
 }
 .subtask-add-row{display:flex;gap:8px;margin-top:10px}
 .subtask-input{
-  flex:1;padding:10px 12px;border-radius:10px;border:2px solid #f4c0dc;font-size:13px;font-family:inherit;outline:none
+  flex:1;padding:10px 12px;border-radius:10px;border:2px solid #f4c0dc;font-size:13px;font-family:inherit;outline:none;min-width:0
 }
 .subtask-input:focus{border-color:#e8629a}
 
 .add-form{padding:20px;margin-bottom:14px;animation:fadeIn .2s ease}
 .add-form-title{font-weight:800;color:#8a2c5a;margin-bottom:14px;font-size:15px}
 .form-input,.form-select,.form-textarea{
-  width:100%;padding:11px 14px;border-radius:12px;border:2px solid #f4c0dc;
+  width:100%;min-width:0;padding:11px 14px;border-radius:12px;border:2px solid #f4c0dc;
   font-size:14px;margin-bottom:10px;font-family:inherit;outline:none;background:#fff
 }
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#e8629a}
@@ -146,7 +154,7 @@ body{
 }
 .btn-open-add{
   width:100%;padding:14px 0;background:linear-gradient(135deg,#e8629a,#f4a0c4);color:#fff;border:none;border-radius:16px;
-  font-size:16px;cursor:pointer;box-shadow:0 4px 16px rgba(213,91,155,.3)
+  font-size:16px;cursor:pointer;box-shadow:0 4px 16px rgba(213,91,155,.3);margin-bottom:12px
 }
 .ghost-btn{
   padding:10px 12px;background:#fff;border:2px solid #f3d5e3;color:#c15d87
@@ -204,7 +212,7 @@ body{
 }
 .gantt-name{font-size:12px;color:#6f7280;cursor:pointer}
 .gantt-grid{
-  display:grid;gap:2px;min-height:26px;align-items:center
+  display:grid;gap:2px;min-height:26px;align-items:center;position:relative;overflow:hidden
 }
 .gantt-day,.gantt-cell{
   border-radius:6px;text-align:center;font-size:10px;padding:4px 0
@@ -237,7 +245,7 @@ body{
 }
 .modal{
   background:#fff;border-radius:24px;padding:24px;width:100%;max-width:380px;
-  box-shadow:0 8px 40px rgba(138,44,95,.18);animation:fadeIn .2s ease
+  box-shadow:0 8px 40px rgba(138,44,95,.18);animation:fadeIn .2s ease;overflow:hidden
 }
 .modal-header{text-align:center;margin-bottom:16px}
 .modal-bird{font-size:32px}
@@ -281,6 +289,12 @@ body{
   </div>
 
   <div id="list-view">
+    <div class="type-filter-row">
+      <button class="filter-btn active" id="tf-all" onclick="setTypeFilter('all')">すべて</button>
+      <button class="filter-btn" id="tf-task" onclick="setTypeFilter('task')">📋 タスク</button>
+      <button class="filter-btn" id="tf-event" onclick="setTypeFilter('event')">📅 イベント</button>
+      <button class="filter-btn" id="f-title-only" onclick="toggleTitleOnly()" style="margin-left:auto">タイトルのみ</button>
+    </div>
     <div class="filter-row">
       <button class="filter-btn active" id="f-all" onclick="setFilter('all')">すべて</button>
       <button class="filter-btn" id="f-active" onclick="setFilter('active')">やること</button>
@@ -306,7 +320,7 @@ body{
   <div id="stats-view" class="hidden">
     <div class="progress-wrap">
       <div class="progress-head">
-        <div class="progress-title">全体の進みぐあい</div>
+        <div class="progress-title">タスクの進みぐあい</div>
         <div class="progress-num" id="progress-num">0%</div>
       </div>
       <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
@@ -402,6 +416,13 @@ body{
         <button class="priority-btn" id="p-low" onclick="setModalPriority('low')">🟢 低い</button>
       </div>
     </div>
+    <div style="margin-bottom:14px;">
+      <div class="form-label">種類</div>
+      <div class="priority-row">
+        <button class="priority-btn" id="mt-task" onclick="setModalType('task')">📋 タスク</button>
+        <button class="priority-btn" id="mt-event" onclick="setModalType('event')">📅 イベント</button>
+      </div>
+    </div>
     <div class="form-row-btn">
       <button class="btn-add" onclick="modalAdd()">追加するよ！🐦</button>
       <button class="btn-cancel" onclick="closeModal()">やめる</button>
@@ -422,9 +443,12 @@ const WEEKDAYS = ['日','月','火','水','木','金','土'];
 let tasks = loadTasks();
 let view = 'list';
 let filter = 'all';
+let typeFilter = 'all';
+let titleOnly = false;
 let calDate = new Date();
 let modalDate = '';
 let modalPriority = 'medium';
+let modalType = 'task';
 let addingForm = false;
 let editingId = null;
 let openSubtaskTaskId = null;
@@ -462,6 +486,7 @@ function ensureTaskShape(t){
     deadline: t.deadline || '',
     priority: ['high','medium','low'].includes(t.priority) ? t.priority : 'medium',
     done: !!t.done,
+    type: t.type === 'event' ? 'event' : 'task',
     subtasks: Array.isArray(t.subtasks) ? t.subtasks.map(st => ({
       id: st.id || Date.now() + Math.floor(Math.random()*10000),
       name: st.name || 'ひなタスク',
@@ -556,7 +581,7 @@ function recordHistory(task, reason='update'){
 
 function renderAlert(){
   const urgent = tasks
-    .filter(t => !t.done && t.deadline && getDaysLeft(t.deadline) >= 0 && getDaysLeft(t.deadline) <= 3)
+    .filter(t => !t.done && t.type === 'task' && t.deadline && getDaysLeft(t.deadline) >= 0 && getDaysLeft(t.deadline) <= 3)
     .sort((a,b) => getDaysLeft(a.deadline) - getDaysLeft(b.deadline));
 
   const el = document.getElementById('alert-area');
@@ -586,19 +611,23 @@ function sortTasks(arr){
 
 function renderList(){
   const filtered = sortTasks(tasks.filter(t => {
-    if (filter === 'active') return !t.done;
-    if (filter === 'done') return t.done;
+    if (filter === 'active' && t.done) return false;
+    if (filter === 'done' && !t.done) return false;
+    if (typeFilter !== 'all' && t.type !== typeFilter) return false;
     return true;
   }));
 
-  document.getElementById('task-count').textContent = tasks.filter(t=>!t.done).length + '件残ってるよ';
+  document.getElementById('task-count').textContent = tasks.filter(t => !t.done && t.type === 'task').length + '件残ってるよ';
 
   const list = document.getElementById('task-list');
+  list.className = 'task-list' + (titleOnly ? ' title-only' : '');
+
   if (!filtered.length) {
     list.innerHTML = '<div class="task-empty">🐦 ジュリリ！タスクがないよ〜</div>';
   } else {
     list.innerHTML = filtered.map(t => {
       const progress = taskProgress(t);
+      const isEvent = t.type === 'event';
       return `
       <div class="task-row ${t.done?'done':''}" id="task-${t.id}">
         <input type="checkbox" class="task-check" ${t.done?'checked':''} onchange="toggleDone(${t.id})">
@@ -606,21 +635,21 @@ function renderList(){
           <div class="task-name ${t.done?'done':''}">${escapeHtml(t.name)}</div>
           ${t.note ? `<div class="task-note">${escapeHtml(t.note)}</div>` : ''}
           <div class="task-meta">
+            <span class="${isEvent?'event-badge':'task-badge'}">${isEvent?'📅 イベント':'📋 タスク'}</span>
             <span class="priority-badge" style="background:${PRIORITIES[t.priority||'medium'].bg};color:${PRIORITIES[t.priority||'medium'].color}">
               ${PRIORITIES[t.priority||'medium'].label}
             </span>
-            <span class="progress-pill">進捗 ${progress}%</span>
+            ${!isEvent ? `<span class="progress-pill">進捗 ${progress}%</span>` : ''}
             ${deadlineBadge(t.deadline)}
             ${t.startDate ? `<span class="mini-badge" style="background:#eef8ff;color:#5b8bd9">開始 ${escapeHtml(t.startDate)}</span>` : ''}
             ${t.deadline ? `<span class="deadline-text">${escapeHtml(t.deadline)}</span>` : ''}
-            <span class="mini-badge" style="background:#fff7e8;color:#c98b20">🐣 ${t.subtasks.length}件</span>
+            ${!isEvent ? `<span class="mini-badge" style="background:#fff7e8;color:#c98b20">🐣 ${t.subtasks.length}件</span>` : ''}
           </div>
-
-          ${openSubtaskTaskId === t.id ? renderSubtaskBox(t) : ''}
         </div>
-        <button class="task-open-sub" onclick="toggleSubtaskPanel(${t.id})">🐣</button>
+        ${!isEvent ? `<button class="task-open-sub" onclick="toggleSubtaskPanel(${t.id})">🐣</button>` : '<span style="display:inline-block;width:36px;flex-shrink:0"></span>'}
         <button class="task-edit" onclick="openEditForm(${t.id})">✏️</button>
         <button class="task-del" onclick="deleteTask(${t.id})">✕</button>
+        ${openSubtaskTaskId === t.id && !isEvent ? `<div class="subtask-outer">${renderSubtaskBox(t)}</div>` : ''}
       </div>
       `;
     }).join('');
@@ -651,6 +680,13 @@ function renderList(){
               <option value="high" ${(current?.priority==='high')?'selected':''}>🔴 高い</option>
               <option value="medium" ${(!current || current?.priority==='medium')?'selected':''}>🟡 ふつう</option>
               <option value="low" ${(current?.priority==='low')?'selected':''}>🟢 低い</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">種類</label>
+            <select class="form-select" id="form-type" style="margin-bottom:0">
+              <option value="task" ${(!current || current?.type!=='event')?'selected':''}>📋 タスク</option>
+              <option value="event" ${(current?.type==='event')?'selected':''}>📅 イベント</option>
             </select>
           </div>
         </div>
@@ -715,10 +751,9 @@ function renderCalendar(){
     const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
     const hasUrgent = dayTasks.some(t => getDaysLeft(t.deadline) <= 3);
     const classes = ['cal-day', isToday?'is-today':'', dayTasks.length?'has-task':'', hasUrgent?'urgent':''].filter(Boolean).join(' ');
-    const chips = dayTasks.slice(0,2).map(t =>
+    const chips = dayTasks.map(t =>
       `<div class="cal-task-chip" style="background:${PRIORITIES[t.priority||'medium'].color}">${escapeHtml(t.name)}</div>`
     ).join('');
-    const more = dayTasks.length > 2 ? `<div class="cal-more">+${dayTasks.length-2}</div>` : '';
     html += `<div class="${classes}" data-date="${key}"
       ontouchstart="calTouchStart(event,'${key}')"
       ontouchend="calTouchEnd(event,'${key}')"
@@ -727,7 +762,7 @@ function renderCalendar(){
       onmouseup="calMouseUp(event,'${key}')"
       onmouseleave="calMouseLeave()">
       <div class="cal-day-num">${d}</div>
-      ${chips}${more}
+      ${chips}
       <div class="cal-plus">＋</div>
     </div>`;
   }
@@ -735,15 +770,16 @@ function renderCalendar(){
 }
 
 function renderStats(){
-  const total = tasks.length;
-  const avg = total ? Math.round(tasks.reduce((s,t)=>s+taskProgress(t),0)/total) : 0;
-  const done = tasks.filter(t => t.done).length;
-  const active = tasks.filter(t => !t.done).length;
+  const taskItems = tasks.filter(t => t.type === 'task');
+  const total = taskItems.length;
+  const avg = total ? Math.round(taskItems.reduce((s,t)=>s+taskProgress(t),0)/total) : 0;
+  const done = taskItems.filter(t => t.done).length;
+  const active = taskItems.filter(t => !t.done).length;
 
   document.getElementById('progress-bar').style.width = avg + '%';
   document.getElementById('progress-num').textContent = avg + '%';
   document.getElementById('progress-sub').textContent = total
-    ? `全部で ${total} 件。完了 ${done} 件、未完了 ${active} 件。平均進捗は ${avg}% だよ。`
+    ? `タスク全部で ${total} 件。完了 ${done} 件、未完了 ${active} 件。平均進捗は ${avg}% だよ。`
     : 'まだタスクがないよ。まずは1件入れてみよう！';
 
   document.getElementById('mode-deadline').className = 'seg-btn' + (statsMode==='deadline' ? ' active' : '');
@@ -899,9 +935,10 @@ function renderChartArea(){
   const area = document.getElementById('chart-area');
   const range = getCurrentRange();
   const buckets = enumerateChildBuckets(range);
+  const taskOnly = tasks.filter(t => t.type === 'task');
 
   if(statsUnit === 'day'){
-    const list = sortTasks(tasks).map(t => ({
+    const list = sortTasks(taskOnly).map(t => ({
       task:t,
       value: progressInRange(t, range)
     })).filter(x => x.value !== null);
@@ -921,7 +958,7 @@ function renderChartArea(){
   }
 
   const rows = buckets.map(b => {
-    const related = tasks.map(t => ({task:t, value:progressInRange(t, {start:b.start, end:b.end})})).filter(x => x.value !== null);
+    const related = taskOnly.map(t => ({task:t, value:progressInRange(t, {start:b.start, end:b.end})})).filter(x => x.value !== null);
     const avg = related.length ? Math.round(related.reduce((s,x)=>s+x.value,0)/related.length) : 0;
     return { bucket:b, avg, count:related.length };
   });
@@ -938,6 +975,7 @@ function renderChartArea(){
 function renderGanttArea(){
   const area = document.getElementById('gantt-area');
   const range = getCurrentRange();
+  const taskOnly = tasks.filter(t => t.type === 'task');
 
   const headerDays = [];
   let cur = new Date(range.start);
@@ -946,7 +984,7 @@ function renderGanttArea(){
     cur = addDays(cur, 1);
   }
 
-  const tasksInRange = sortTasks(tasks).filter(t => {
+  const tasksInRange = sortTasks(taskOnly).filter(t => {
     const s = parseYMD(t.startDate || dateToYMD(new Date(t.createdAt)));
     const e = t.deadline ? parseYMD(t.deadline) : s;
     return !(e < range.start || s > range.end);
@@ -998,6 +1036,7 @@ function renderGanttArea(){
 function renderFoldArea(){
   const area = document.getElementById('fold-area');
   const range = getCurrentRange();
+  const taskOnly = tasks.filter(t => t.type === 'task');
 
   if(statsUnit === 'day'){
     area.innerHTML = '';
@@ -1006,7 +1045,7 @@ function renderFoldArea(){
 
   const buckets = enumerateChildBuckets(range);
   const rows = buckets.map(b => {
-    const related = tasks.filter(t => {
+    const related = taskOnly.filter(t => {
       if(statsMode === 'deadline'){
         if(!t.deadline) return false;
         const dd = parseYMD(t.deadline);
@@ -1060,6 +1099,20 @@ function setFilter(f){
   render();
 }
 
+function setTypeFilter(tf){
+  typeFilter = tf;
+  ['all','task','event'].forEach(x => {
+    document.getElementById('tf-'+x).className = 'filter-btn' + (tf===x ? ' active' : '');
+  });
+  render();
+}
+
+function toggleTitleOnly(){
+  titleOnly = !titleOnly;
+  document.getElementById('f-title-only').className = 'filter-btn' + (titleOnly ? ' active' : '');
+  renderList();
+}
+
 function toggleDone(id){
   tasks = tasks.map(t => {
     if(t.id !== id) return t;
@@ -1079,6 +1132,7 @@ function toggleDone(id){
 }
 
 function deleteTask(id){
+  if(!confirm('このタスクを本当に削除する？\nジュリリ…この操作は元に戻せないよ。')) return;
   tasks = tasks.filter(t => t.id !== id);
   if(openSubtaskTaskId === id) openSubtaskTaskId = null;
   save();
@@ -1109,6 +1163,7 @@ function submitForm(){
   const startDate = document.getElementById('form-startDate').value || dateToYMD(todayStart());
   const deadline = document.getElementById('form-deadline').value;
   const priority = document.getElementById('form-priority').value;
+  const type = document.getElementById('form-type').value;
 
   if (!name) return;
 
@@ -1117,7 +1172,7 @@ function submitForm(){
       if(t.id !== editingId) return t;
       const updated = {
         ...t,
-        name, note, startDate, deadline, priority,
+        name, note, startDate, deadline, priority, type,
         updatedAt: Date.now()
       };
       recordHistory(updated, 'edit');
@@ -1127,7 +1182,7 @@ function submitForm(){
     const now = Date.now();
     const task = ensureTaskShape({
       id: now,
-      name, note, startDate, deadline, priority,
+      name, note, startDate, deadline, priority, type,
       done: false,
       subtasks: [],
       history: [],
@@ -1284,12 +1339,14 @@ function openModalFromDetail(){
 function openModal(date){
   modalDate = date;
   modalPriority = 'medium';
+  modalType = 'event';
   document.getElementById('modal-date-title').textContent = date.replace(/-/g,'/') + ' に追加するよ！';
   document.getElementById('modal-name').value = '';
   document.getElementById('modal-note').value = '';
   document.getElementById('modal-startDate').value = date;
   document.getElementById('modal-deadline').value = date;
   updateModalPriorityBtns();
+  updateModalTypeBtns();
   document.getElementById('modal').classList.remove('hidden');
   setTimeout(() => document.getElementById('modal-name').focus(), 80);
 }
@@ -1318,6 +1375,29 @@ function updateModalPriorityBtns(){
     }
   });
 }
+function setModalType(tp){
+  modalType = tp;
+  updateModalTypeBtns();
+}
+function updateModalTypeBtns(){
+  const taskBtn = document.getElementById('mt-task');
+  const eventBtn = document.getElementById('mt-event');
+  if(modalType === 'task'){
+    taskBtn.style.border = '2px solid #7d5bd9';
+    taskBtn.style.background = '#f5efff';
+    taskBtn.style.color = '#7d5bd9';
+    eventBtn.style.border = '2px solid #e0eaf4';
+    eventBtn.style.background = '#fff';
+    eventBtn.style.color = '#aaa';
+  } else {
+    eventBtn.style.border = '2px solid #5b8bd9';
+    eventBtn.style.background = '#eef8ff';
+    eventBtn.style.color = '#5b8bd9';
+    taskBtn.style.border = '2px solid #e0eaf4';
+    taskBtn.style.background = '#fff';
+    taskBtn.style.color = '#aaa';
+  }
+}
 function modalAdd(){
   const name = document.getElementById('modal-name').value.trim();
   const note = document.getElementById('modal-note').value.trim();
@@ -1334,6 +1414,7 @@ function modalAdd(){
     startDate: startDate,
     deadline: deadline,
     priority: modalPriority,
+    type: modalType,
     done: false,
     subtasks: [],
     history: [],
@@ -1366,7 +1447,7 @@ function requestNotifications(){
 
 function maybeNotifySoon(){
   if(!('Notification' in window) || Notification.permission !== 'granted') return;
-  const urgent = tasks.filter(t => !t.done && t.deadline && getDaysLeft(t.deadline) >= 0 && getDaysLeft(t.deadline) <= 1);
+  const urgent = tasks.filter(t => !t.done && t.type === 'task' && t.deadline && getDaysLeft(t.deadline) >= 0 && getDaysLeft(t.deadline) <= 1);
   if(!urgent.length) return;
   const t = sortTasks(urgent)[0];
   new Notification('しままるからお知らせ', {
