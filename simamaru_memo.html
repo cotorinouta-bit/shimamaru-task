@@ -12,7 +12,7 @@
 body{
   font-family:'Hiragino Maru Gothic Pro','BIZ UDPGothic',sans-serif;
   background:linear-gradient(135deg,#fde8f2 0%,#fff0f8 50%,#e8f6ee 100%);
-  min-height:100vh;padding:20px 16px 40px;color:#2c3e50
+  min-height:100vh;padding:12px 8px 24px;color:#2c3e50
 }
 @keyframes pulseAlert{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.78;transform:scale(1.03)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -155,33 +155,33 @@ body{
   padding:8px 10px;background:#f8eff4;color:#c15d87
 }
 
-.calendar-wrap{padding:16px}
-.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.calendar-wrap{padding:4px 2px}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .cal-nav{
-  background:#fde8f2;border:none;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:700;color:#e8629a;font-size:18px
+  background:#fde8f2;border:none;border-radius:10px;padding:6px 14px;cursor:pointer;font-weight:700;color:#e8629a;font-size:18px
 }
 .cal-title{font-weight:800;font-size:16px;color:#8a2c5a}
 .cal-hint{
-  font-size:12px;color:#d4789a;text-align:center;margin-bottom:10px;background:#fff0f8;border-radius:10px;padding:6px 0
+  font-size:11px;color:#d4789a;text-align:center;margin-bottom:4px;background:#fff0f8;border-radius:8px;padding:3px 0
 }
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-weekday{text-align:center;font-size:12px;font-weight:700;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-weekday{text-align:center;font-size:11px;font-weight:700;padding:3px 0}
 .cal-day{
-  border-radius:10px;padding:5px 3px;text-align:center;height:62px;cursor:pointer;transition:all .15s;
+  border-radius:8px;padding:3px 2px;text-align:center;height:72px;cursor:pointer;transition:all .15s;
   background:#fafcff;border:2px solid transparent;position:relative;
-  min-width:0;overflow:hidden
+  min-width:0;overflow:hidden;user-select:none;-webkit-user-select:none
 }
 .cal-day:active{transform:scale(.97)}
 .cal-day.has-task{background:#fde8f2}
 .cal-day.is-today{background:#e8629a}
 .cal-day.urgent{border-color:#f4a900}
-.cal-day-num{font-size:13px;font-weight:500;color:#333}
+.cal-day-num{font-size:12px;font-weight:500;color:#333}
 .cal-day.is-today .cal-day-num{color:#fff;font-weight:800}
 .cal-task-chip{
-  font-size:9px;color:#fff;border-radius:4px;padding:1px 3px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  font-size:9px;color:#fff;border-radius:4px;padding:1px 3px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 }
 .cal-more{font-size:9px;color:#888}
-.cal-plus{position:absolute;bottom:2px;right:4px;font-size:11px;color:#f4c0dc;font-weight:700}
+.cal-plus{position:absolute;bottom:2px;right:3px;font-size:10px;color:#f4c0dc;font-weight:700}
 .cal-day.is-today .cal-plus{color:rgba(255,255,255,.55)}
 
 .tool-wrap{padding:16px;margin-top:14px}
@@ -287,8 +287,8 @@ body{
       <button class="filter-btn" id="f-done" onclick="setFilter('done')">おわった</button>
       <span class="task-count" id="task-count"></span>
     </div>
-    <div class="task-list" id="task-list"></div>
     <div id="add-area"></div>
+    <div class="task-list" id="task-list"></div>
   </div>
 
   <div id="calendar-view" class="hidden">
@@ -298,7 +298,7 @@ body{
         <span class="cal-title" id="cal-title"></span>
         <button class="cal-nav" onclick="changeMonth(1)">›</button>
       </div>
-      <div class="cal-hint">📅 日付をタップすると、その日のタスクを追加できるよ！</div>
+      <div class="cal-hint">📅 タップ：予定を見る　長押し：予定を追加するよ！</div>
       <div class="cal-grid" id="cal-grid"></div>
     </div>
   </div>
@@ -361,6 +361,20 @@ body{
   <div class="footer">🐦 しままる、いっしょにがんばろうよ！ジュリリ！</div>
 </div>
 
+<div class="modal-overlay hidden" id="day-detail-modal" onclick="closeDayDetailOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-bird">📅</div>
+      <div class="modal-title" id="day-detail-title"></div>
+    </div>
+    <div id="day-detail-list" style="max-height:50vh;overflow-y:auto;margin-bottom:14px;"></div>
+    <div class="form-row-btn">
+      <button class="btn-add" onclick="openModalFromDetail()">＋ 追加するよ🐦</button>
+      <button class="btn-cancel" onclick="closeDayDetail()">とじる</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="modal" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-header">
@@ -370,6 +384,16 @@ body{
     </div>
     <input class="form-input" id="modal-name" placeholder="タスク名をいれてね" onkeydown="if(event.key==='Enter')modalAdd()">
     <textarea class="form-textarea" id="modal-note" placeholder="メモも書けるよ"></textarea>
+    <div class="form-row" style="margin-bottom:10px;">
+      <div class="form-group">
+        <label class="form-label">開始日</label>
+        <input type="date" class="form-input" id="modal-startDate" style="margin-bottom:0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">終了日（締切）</label>
+        <input type="date" class="form-input" id="modal-deadline" style="margin-bottom:0">
+      </div>
+    </div>
     <div style="margin-bottom:14px;">
       <div class="form-label">優先度はどのくらい？</div>
       <div class="priority-row">
@@ -695,7 +719,13 @@ function renderCalendar(){
       `<div class="cal-task-chip" style="background:${PRIORITIES[t.priority||'medium'].color}">${escapeHtml(t.name)}</div>`
     ).join('');
     const more = dayTasks.length > 2 ? `<div class="cal-more">+${dayTasks.length-2}</div>` : '';
-    html += `<div class="${classes}" onclick="openModal('${key}')">
+    html += `<div class="${classes}" data-date="${key}"
+      ontouchstart="calTouchStart(event,'${key}')"
+      ontouchend="calTouchEnd(event,'${key}')"
+      ontouchcancel="calTouchCancel()"
+      onmousedown="calMouseDown(event,'${key}')"
+      onmouseup="calMouseUp(event,'${key}')"
+      onmouseleave="calMouseLeave()">
       <div class="cal-day-num">${d}</div>
       ${chips}${more}
       <div class="cal-plus">＋</div>
@@ -1184,12 +1214,81 @@ function changeMonth(dir){
   renderCalendar();
 }
 
+// --- Long press / tap detection ---
+let _calPressTimer = null;
+let _calPressTriggered = false;
+
+function calTouchStart(e, date){
+  _calPressTriggered = false;
+  _calPressTimer = setTimeout(() => {
+    _calPressTriggered = true;
+    openModal(date);
+  }, 500);
+}
+function calTouchEnd(e, date){
+  if (_calPressTimer) { clearTimeout(_calPressTimer); _calPressTimer = null; }
+  if (!_calPressTriggered) { openDayDetail(date); }
+  e.preventDefault();
+}
+function calTouchCancel(){
+  if (_calPressTimer) { clearTimeout(_calPressTimer); _calPressTimer = null; }
+}
+function calMouseDown(e, date){
+  if (e.button !== 0) return;
+  _calPressTriggered = false;
+  _calPressTimer = setTimeout(() => {
+    _calPressTriggered = true;
+    openModal(date);
+  }, 500);
+}
+function calMouseUp(e, date){
+  if (_calPressTimer) { clearTimeout(_calPressTimer); _calPressTimer = null; }
+  if (!_calPressTriggered) { openDayDetail(date); }
+}
+function calMouseLeave(){
+  if (_calPressTimer) { clearTimeout(_calPressTimer); _calPressTimer = null; }
+}
+
+// --- Day detail modal ---
+let dayDetailDate = '';
+function openDayDetail(date){
+  dayDetailDate = date;
+  document.getElementById('day-detail-title').textContent = date.replace(/-/g,'/') + ' の予定';
+  const dayTasks = sortTasks(tasks.filter(t => t.deadline === date || t.startDate === date));
+  const list = document.getElementById('day-detail-list');
+  if (dayTasks.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#d4789a;padding:12px 0;">🐦 この日の予定はないよ〜</div>';
+  } else {
+    list.innerHTML = dayTasks.map(t => {
+      const p = PRIORITIES[t.priority||'medium'];
+      return `<div style="padding:8px 10px;margin-bottom:6px;border-radius:12px;background:${p.bg};border-left:3px solid ${p.color}">
+        <div style="font-weight:700;font-size:13px;color:#3a2050">${escapeHtml(t.name)}</div>
+        ${t.note ? `<div style="font-size:11px;color:#888;margin-top:2px">${escapeHtml(t.note)}</div>` : ''}
+        <div style="font-size:11px;margin-top:4px;">${p.label}${t.deadline?' 締切:'+t.deadline:''}${t.startDate?' 開始:'+t.startDate:''}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('day-detail-modal').classList.remove('hidden');
+}
+function closeDayDetail(){
+  document.getElementById('day-detail-modal').classList.add('hidden');
+}
+function closeDayDetailOutside(e){
+  if (e.target.id === 'day-detail-modal') closeDayDetail();
+}
+function openModalFromDetail(){
+  closeDayDetail();
+  openModal(dayDetailDate);
+}
+
 function openModal(date){
   modalDate = date;
   modalPriority = 'medium';
-  document.getElementById('modal-date-title').textContent = date.replace(/-/g,'/') + ' の予定だよ！';
+  document.getElementById('modal-date-title').textContent = date.replace(/-/g,'/') + ' に追加するよ！';
   document.getElementById('modal-name').value = '';
   document.getElementById('modal-note').value = '';
+  document.getElementById('modal-startDate').value = date;
+  document.getElementById('modal-deadline').value = date;
   updateModalPriorityBtns();
   document.getElementById('modal').classList.remove('hidden');
   setTimeout(() => document.getElementById('modal-name').focus(), 80);
@@ -1224,13 +1323,16 @@ function modalAdd(){
   const note = document.getElementById('modal-note').value.trim();
   if (!name) return;
 
+  const startDate = document.getElementById('modal-startDate').value || modalDate;
+  const deadline = document.getElementById('modal-deadline').value || modalDate;
+
   const now = Date.now();
   const task = ensureTaskShape({
     id: now,
     name,
     note,
-    startDate: dateToYMD(todayStart()),
-    deadline: modalDate,
+    startDate: startDate,
+    deadline: deadline,
     priority: modalPriority,
     done: false,
     subtasks: [],
