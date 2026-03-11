@@ -268,6 +268,21 @@ body{
   border-radius:12px;font-size:15px;cursor:pointer;font-family:inherit;font-weight:700
 }
 
+.crop-area-wrap{display:flex;justify-content:center;align-items:center;margin:12px 0}
+.crop-circle{
+  width:240px;height:240px;border-radius:50%;overflow:hidden;position:relative;
+  border:3px solid #e8629a;cursor:grab;background:#f0e0ea;touch-action:none;flex-shrink:0
+}
+.crop-circle:active{cursor:grabbing}
+.crop-circle img{position:absolute;transform-origin:0 0;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.crop-zoom-row{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0}
+.crop-zoom-btn{
+  width:38px;height:38px;border-radius:50%;border:2px solid #f4c0dc;background:#fff;
+  color:#e8629a;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-family:inherit;line-height:1
+}
+.crop-zoom-label{font-size:13px;color:#d4789a;font-weight:700;min-width:44px;text-align:center}
+
 @media (max-width:700px){
   .chart-row{grid-template-columns:120px 1fr 56px}
   .gantt-header,.gantt-row{grid-template-columns:120px 1fr}
@@ -283,6 +298,7 @@ body{
 <div class="header">
   <img src="shimamaru.jpg" class="header-image" id="header-image" alt="しままる"
     ontouchstart="imgPressStart(event)"
+    ontouchmove="imgPressMove(event)"
     ontouchend="imgPressEnd(event)"
     ontouchcancel="imgPressCancel()"
     onmousedown="imgMouseDown(event)"
@@ -390,6 +406,30 @@ body{
   </div>
 
   <div class="footer">🐦 しままる、いっしょにがんばろうよ！ジュリリ！</div>
+</div>
+
+<div class="modal-overlay hidden" id="crop-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-bird">✂️</div>
+      <div class="modal-title">画像を切り取るよ</div>
+      <div class="modal-sub">ドラッグで位置調整・ピンチかボタンでズームできるよ🐦</div>
+    </div>
+    <div class="crop-area-wrap">
+      <div class="crop-circle" id="crop-circle">
+        <img id="crop-img" draggable="false" alt="">
+      </div>
+    </div>
+    <div class="crop-zoom-row">
+      <button class="crop-zoom-btn" onclick="cropZoom(-0.15)">－</button>
+      <span class="crop-zoom-label" id="crop-zoom-label">100%</span>
+      <button class="crop-zoom-btn" onclick="cropZoom(0.15)">＋</button>
+    </div>
+    <div class="form-row-btn" style="margin-top:8px">
+      <button class="btn-add" onclick="cropConfirm()">決定 🐦</button>
+      <button class="btn-cancel" onclick="cropCancel()">やめる</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay hidden" id="confirm-modal" onclick="confirmCancelOutside(event)">
@@ -1562,12 +1602,22 @@ tasks.forEach(t => {
 });
 
 // --- Header image long-press to replace ---
+const CROP_SIZE = 240;
 let _imgPressTimer = null;
+let _imgTouchStartX = 0, _imgTouchStartY = 0;
+
 function imgPressStart(e){
+  if(e.touches){ _imgTouchStartX = e.touches[0].clientX; _imgTouchStartY = e.touches[0].clientY; }
   _imgPressTimer = setTimeout(() => {
     _imgPressTimer = null;
     document.getElementById('header-img-file').click();
   }, 600);
+}
+function imgPressMove(e){
+  if(!_imgPressTimer) return;
+  const dx = e.touches[0].clientX - _imgTouchStartX;
+  const dy = e.touches[0].clientY - _imgTouchStartY;
+  if(Math.abs(dx) > 8 || Math.abs(dy) > 8){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
 }
 function imgPressEnd(e){
   if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
@@ -1583,24 +1633,106 @@ function imgMouseDown(e){
     document.getElementById('header-img-file').click();
   }, 600);
 }
-function imgMouseUp(){
-  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
-}
-function imgMouseLeave(){
-  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
-}
+function imgMouseUp(){ if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; } }
+function imgMouseLeave(){ if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; } }
+
 document.getElementById('header-img-file').addEventListener('change', e => {
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    const dataUrl = ev.target.result;
-    localStorage.setItem('shimamaru-header-image', dataUrl);
-    document.getElementById('header-image').src = dataUrl;
-  };
+  reader.onload = ev => openCropModal(ev.target.result);
   reader.readAsDataURL(file);
   e.target.value = '';
 });
+
+// --- Crop modal ---
+let _cropScale = 1, _cropX = 0, _cropY = 0;
+let _cropImgW = 0, _cropImgH = 0;
+let _cropDragging = false, _cropLastX = 0, _cropLastY = 0;
+let _cropTouchCount = 0, _cropPinchDist0 = 0, _cropPinchScale0 = 1;
+
+function openCropModal(dataUrl){
+  _cropScale = 1; _cropX = 0; _cropY = 0;
+  const img = document.getElementById('crop-img');
+  img.onload = () => {
+    _cropImgW = img.naturalWidth;
+    _cropImgH = img.naturalHeight;
+    _cropScale = Math.max(CROP_SIZE / _cropImgW, CROP_SIZE / _cropImgH);
+    _cropX = (CROP_SIZE - _cropImgW * _cropScale) / 2;
+    _cropY = (CROP_SIZE - _cropImgH * _cropScale) / 2;
+    _updateCropTransform();
+  };
+  img.src = dataUrl;
+  document.getElementById('crop-modal').classList.remove('hidden');
+}
+function _updateCropTransform(){
+  const img = document.getElementById('crop-img');
+  img.style.width = (_cropImgW * _cropScale) + 'px';
+  img.style.height = (_cropImgH * _cropScale) + 'px';
+  img.style.left = _cropX + 'px';
+  img.style.top = _cropY + 'px';
+  document.getElementById('crop-zoom-label').textContent = Math.round(_cropScale * 100) + '%';
+}
+function _cropApplyScale(newScale, cx, cy){
+  const ix = (cx - _cropX) / _cropScale, iy = (cy - _cropY) / _cropScale;
+  _cropScale = Math.max(0.3, Math.min(10, newScale));
+  _cropX = cx - ix * _cropScale; _cropY = cy - iy * _cropScale;
+  _updateCropTransform();
+}
+function cropZoom(delta){
+  _cropApplyScale(_cropScale * (1 + delta), CROP_SIZE / 2, CROP_SIZE / 2);
+}
+function cropConfirm(){
+  const canvas = document.createElement('canvas');
+  canvas.width = CROP_SIZE; canvas.height = CROP_SIZE;
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath(); ctx.arc(CROP_SIZE/2, CROP_SIZE/2, CROP_SIZE/2, 0, Math.PI*2); ctx.clip();
+  ctx.drawImage(document.getElementById('crop-img'), _cropX, _cropY, _cropImgW * _cropScale, _cropImgH * _cropScale);
+  const dataUrl = canvas.toDataURL('image/png');
+  localStorage.setItem('shimamaru-header-image', dataUrl);
+  document.getElementById('header-image').src = dataUrl;
+  document.getElementById('crop-modal').classList.add('hidden');
+}
+function cropCancel(){ document.getElementById('crop-modal').classList.add('hidden'); }
+
+// crop mouse drag
+const _cc = document.getElementById('crop-circle');
+_cc.addEventListener('mousedown', e => {
+  if(e.button !== 0) return; _cropDragging = true;
+  _cropLastX = e.clientX; _cropLastY = e.clientY; e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if(!_cropDragging) return;
+  _cropX += e.clientX - _cropLastX; _cropY += e.clientY - _cropLastY;
+  _cropLastX = e.clientX; _cropLastY = e.clientY; _updateCropTransform();
+});
+document.addEventListener('mouseup', () => { _cropDragging = false; });
+
+// crop touch drag + pinch
+_cc.addEventListener('touchstart', e => {
+  e.preventDefault(); _cropTouchCount = e.touches.length;
+  if(e.touches.length === 1){
+    _cropLastX = e.touches[0].clientX; _cropLastY = e.touches[0].clientY;
+  } else if(e.touches.length === 2){
+    _cropPinchDist0 = Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+    _cropPinchScale0 = _cropScale;
+  }
+}, {passive:false});
+_cc.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if(e.touches.length === 1 && _cropTouchCount === 1){
+    _cropX += e.touches[0].clientX - _cropLastX; _cropY += e.touches[0].clientY - _cropLastY;
+    _cropLastX = e.touches[0].clientX; _cropLastY = e.touches[0].clientY; _updateCropTransform();
+  } else if(e.touches.length === 2){
+    const dist = Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+    const cx = (e.touches[0].clientX+e.touches[1].clientX)/2;
+    const cy = (e.touches[0].clientY+e.touches[1].clientY)/2;
+    const rect = _cc.getBoundingClientRect();
+    _cropApplyScale(_cropPinchScale0 * dist / _cropPinchDist0, cx - rect.left, cy - rect.top);
+  }
+}, {passive:false});
+_cc.addEventListener('touchend', e => { _cropTouchCount = e.touches.length; });
+
 const _savedImg = localStorage.getItem('shimamaru-header-image');
 if(_savedImg) document.getElementById('header-image').src = _savedImg;
 
