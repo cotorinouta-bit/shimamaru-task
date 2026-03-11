@@ -145,7 +145,8 @@ body{
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#e8629a}
 .form-textarea{min-height:88px;resize:vertical}
 .form-row{display:flex;gap:10px;margin-bottom:10px}
-.form-group{flex:1;min-width:0}
+.form-group{flex:1;min-width:0;overflow:hidden}
+input[type="date"].form-input{font-size:13px}
 .form-label{font-size:12px;color:#d4789a;font-weight:700;margin-bottom:4px;display:block}
 .form-row-btn{display:flex;gap:8px}
 .btn-add,.btn-cancel,.btn-open-add,.ghost-btn,.small-btn{
@@ -196,6 +197,12 @@ body{
 .cal-task-chip{
   font-size:9px;color:#fff;border-radius:4px;padding:1px 3px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 }
+.cal-event-chip{
+  font-size:9px;border-radius:3px;padding:1px 3px 1px 4px;margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  border-left:2.5px solid;background:transparent
+}
+.cal-day.is-today .cal-event-chip{color:rgba(255,255,255,.92)!important;border-color:rgba(255,255,255,.75)!important}
 .cal-more{font-size:9px;color:#888}
 
 .tool-wrap{padding:16px;margin-top:14px}
@@ -824,9 +831,12 @@ function renderCalendar(){
     const hasUrgent = dayTasks.some(t => getDaysLeft(t.deadline) <= 3);
     const classes = ['cal-day', isToday?'is-today':'', dayTasks.length?'has-task':'', hasUrgent?'urgent':''].filter(Boolean).join(' ');
     const MAX_CHIPS = 3;
-    const chips = dayTasks.slice(0, MAX_CHIPS).map(t =>
-      `<div class="cal-task-chip" style="background:${PRIORITIES[t.priority||'medium'].color}">${escapeHtml(t.name)}</div>`
-    ).join('');
+    const chips = dayTasks.slice(0, MAX_CHIPS).map(t => {
+      const color = PRIORITIES[t.priority||'medium'].color;
+      return t.type === 'event'
+        ? `<div class="cal-event-chip" style="border-color:${color};color:${color}">${escapeHtml(t.name)}</div>`
+        : `<div class="cal-task-chip" style="background:${color}">${escapeHtml(t.name)}</div>`;
+    }).join('');
     const hasMore = dayTasks.length > MAX_CHIPS;
     html += `<div class="${classes}" data-date="${key}"
       ontouchstart="calTouchStart(event,'${key}')"
