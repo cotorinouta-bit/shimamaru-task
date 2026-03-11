@@ -29,7 +29,8 @@ body{
   cursor:pointer;
   transition:transform .15s,box-shadow .15s;
   -webkit-user-drag:none;
-  user-select:none;-webkit-user-select:none
+  user-select:none;-webkit-user-select:none;
+  -webkit-touch-callout:none
 }
 .header-image:active{transform:scale(.96)}
 .header-bird{font-size:48px;margin-bottom:4px}
@@ -200,7 +201,7 @@ input[type="date"].form-input{font-size:13px}
 .cal-event-chip{
   font-size:9px;border-radius:3px;padding:1px 3px 1px 4px;margin-top:1px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  border-left:2.5px solid;background:transparent
+  border:1px solid;border-left-width:2.5px;background:transparent
 }
 .cal-day.is-today .cal-event-chip{color:rgba(255,255,255,.92)!important;border-color:rgba(255,255,255,.75)!important}
 .cal-more{font-size:9px;color:#888}
@@ -298,6 +299,7 @@ input[type="date"].form-input{font-size:13px}
 @media (max-width:520px){
   .form-row{flex-direction:column}
 }
+.modal input[type="date"].form-input{-webkit-appearance:none;appearance:none}
 .modal .form-row{flex-direction:column}
 
 </style>
