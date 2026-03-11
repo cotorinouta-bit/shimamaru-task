@@ -20,13 +20,18 @@ body{
 .container{max-width:860px;margin:0 auto}
 .header{text-align:center;margin-bottom:18px}
 .header-image{
-  width:120px;
-  height:120px;
+  width:160px;
+  height:160px;
   object-fit:cover;
   border-radius:50%;
-  margin-bottom:6px;
-  box-shadow:0 4px 12px rgba(0,0,0,.15)
+  margin-bottom:2px;
+  box-shadow:0 4px 16px rgba(138,44,90,.22);
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  -webkit-user-drag:none;
+  user-select:none;-webkit-user-select:none
 }
+.header-image:active{transform:scale(.96)}
 .header-bird{font-size:48px;margin-bottom:4px}
 .header-title{font-size:22px;font-weight:900;color:#8a2c5a;letter-spacing:1px}
 .header-sub{font-size:13px;color:#d4789a;margin-top:4px}
@@ -258,6 +263,10 @@ body{
 }
 .footer{text-align:center;margin-top:24px;font-size:12px;color:#d4789a}
 .hidden{display:none !important}
+.btn-danger{
+  flex:1;padding:12px 0;background:linear-gradient(135deg,#ff7b7b,#ff4444);color:#fff;border:none;
+  border-radius:12px;font-size:15px;cursor:pointer;font-family:inherit;font-weight:700
+}
 
 @media (max-width:700px){
   .chart-row{grid-template-columns:120px 1fr 56px}
@@ -272,7 +281,15 @@ body{
 <body>
 <div class="container">
 <div class="header">
-  <img src="shimamaru.jpg" class="header-image" alt="しままる">
+  <img src="shimamaru.jpg" class="header-image" id="header-image" alt="しままる"
+    ontouchstart="imgPressStart(event)"
+    ontouchend="imgPressEnd(event)"
+    ontouchcancel="imgPressCancel()"
+    onmousedown="imgMouseDown(event)"
+    onmouseup="imgMouseUp()"
+    onmouseleave="imgMouseLeave()"
+    title="長押しで画像を変えられるよ🐦">
+  <input type="file" id="header-img-file" accept="image/*" class="hidden">
 
   <div class="header-overlay">
     <div class="header-title">しままるのおしごとメモ</div>
@@ -373,6 +390,20 @@ body{
   </div>
 
   <div class="footer">🐦 しままる、いっしょにがんばろうよ！ジュリリ！</div>
+</div>
+
+<div class="modal-overlay hidden" id="confirm-modal" onclick="confirmCancelOutside(event)">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-header">
+      <div class="modal-bird">🗑️</div>
+      <div class="modal-title" id="confirm-msg">削除してもいい？</div>
+      <div class="modal-sub" id="confirm-sub">ジュリリ…この操作は元に戻せないよ。</div>
+    </div>
+    <div class="form-row-btn">
+      <button class="btn-danger" onclick="confirmOk()">🗑️ 削除する</button>
+      <button class="btn-cancel" onclick="confirmCancel()">やめる</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay hidden" id="day-detail-modal" onclick="closeDayDetailOutside(event)">
@@ -1131,12 +1162,38 @@ function toggleDone(id){
   render();
 }
 
+let _confirmCallback = null;
+function showConfirm(msg, sub, onOk){
+  _confirmCallback = onOk;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-sub').textContent = sub || '';
+  document.getElementById('confirm-modal').classList.remove('hidden');
+}
+function confirmOk(){
+  document.getElementById('confirm-modal').classList.add('hidden');
+  if(_confirmCallback){ _confirmCallback(); _confirmCallback = null; }
+}
+function confirmCancel(){
+  document.getElementById('confirm-modal').classList.add('hidden');
+  _confirmCallback = null;
+}
+function confirmCancelOutside(e){
+  if(e.target.id === 'confirm-modal') confirmCancel();
+}
+
 function deleteTask(id){
-  if(!confirm('このタスクを本当に削除する？\nジュリリ…この操作は元に戻せないよ。')) return;
-  tasks = tasks.filter(t => t.id !== id);
-  if(openSubtaskTaskId === id) openSubtaskTaskId = null;
-  save();
-  render();
+  const task = tasks.find(t => t.id === id);
+  const name = task ? `「${task.name}」` : 'このタスク';
+  showConfirm(
+    `${name}を削除してもいい？`,
+    'ジュリリ…この操作は元に戻せないよ。',
+    () => {
+      tasks = tasks.filter(t => t.id !== id);
+      if(openSubtaskTaskId === id) openSubtaskTaskId = null;
+      save();
+      render();
+    }
+  );
 }
 
 function openForm(){
@@ -1503,6 +1560,49 @@ tasks.forEach(t => {
     recordHistory(t, 'init');
   }
 });
+
+// --- Header image long-press to replace ---
+let _imgPressTimer = null;
+function imgPressStart(e){
+  _imgPressTimer = setTimeout(() => {
+    _imgPressTimer = null;
+    document.getElementById('header-img-file').click();
+  }, 600);
+}
+function imgPressEnd(e){
+  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
+  e.preventDefault();
+}
+function imgPressCancel(){
+  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
+}
+function imgMouseDown(e){
+  if(e.button !== 0) return;
+  _imgPressTimer = setTimeout(() => {
+    _imgPressTimer = null;
+    document.getElementById('header-img-file').click();
+  }, 600);
+}
+function imgMouseUp(){
+  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
+}
+function imgMouseLeave(){
+  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
+}
+document.getElementById('header-img-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    localStorage.setItem('shimamaru-header-image', dataUrl);
+    document.getElementById('header-image').src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+const _savedImg = localStorage.getItem('shimamaru-header-image');
+if(_savedImg) document.getElementById('header-image').src = _savedImg;
 
 render();
 </script>
