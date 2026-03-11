@@ -298,6 +298,7 @@ input[type="date"].form-input{font-size:13px}
 @media (max-width:520px){
   .form-row{flex-direction:column}
 }
+.modal .form-row{flex-direction:column}
 
 </style>
 </head>
@@ -1618,38 +1619,38 @@ tasks.forEach(t => {
 
 // --- Header image long-press to replace ---
 const CROP_SIZE = 240;
-let _imgPressTimer = null;
+let _imgPressing = false, _imgPressT0 = 0, _imgMoved = false;
 let _imgTouchStartX = 0, _imgTouchStartY = 0;
 
 function imgPressStart(e){
-  if(e.touches){ _imgTouchStartX = e.touches[0].clientX; _imgTouchStartY = e.touches[0].clientY; }
-  _imgPressTimer = setTimeout(() => {
-    _imgPressTimer = null;
-    document.getElementById('header-img-file').click();
-  }, 600);
+  _imgTouchStartX = e.touches[0].clientX; _imgTouchStartY = e.touches[0].clientY;
+  _imgPressing = true; _imgMoved = false; _imgPressT0 = Date.now();
 }
 function imgPressMove(e){
-  if(!_imgPressTimer) return;
+  if(!_imgPressing) return;
   const dx = e.touches[0].clientX - _imgTouchStartX;
   const dy = e.touches[0].clientY - _imgTouchStartY;
-  if(Math.abs(dx) > 8 || Math.abs(dy) > 8){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
+  if(Math.abs(dx) > 8 || Math.abs(dy) > 8) _imgMoved = true;
 }
 function imgPressEnd(e){
-  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
-  e.preventDefault();
+  if(_imgPressing && !_imgMoved && Date.now() - _imgPressT0 >= 600){
+    e.preventDefault();
+    document.getElementById('header-img-file').click();
+  }
+  _imgPressing = false;
 }
-function imgPressCancel(){
-  if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; }
-}
+function imgPressCancel(){ _imgPressing = false; }
 function imgMouseDown(e){
   if(e.button !== 0) return;
-  _imgPressTimer = setTimeout(() => {
-    _imgPressTimer = null;
-    document.getElementById('header-img-file').click();
-  }, 600);
+  _imgPressing = true; _imgMoved = false; _imgPressT0 = Date.now();
 }
-function imgMouseUp(){ if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; } }
-function imgMouseLeave(){ if(_imgPressTimer){ clearTimeout(_imgPressTimer); _imgPressTimer = null; } }
+function imgMouseUp(){
+  if(_imgPressing && !_imgMoved && Date.now() - _imgPressT0 >= 600){
+    document.getElementById('header-img-file').click();
+  }
+  _imgPressing = false;
+}
+function imgMouseLeave(){ _imgPressing = false; }
 
 document.getElementById('header-img-file').addEventListener('change', e => {
   const file = e.target.files[0];
