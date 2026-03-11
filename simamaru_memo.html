@@ -106,6 +106,7 @@ body{
 }
 .task-badge{background:#f5efff;color:#7d5bd9;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
 .event-badge{background:#eef8ff;color:#5b8bd9;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
+.test-badge{background:#fff9e8;color:#c98b20;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
 
 .task-list.title-only .task-note,
 .task-list.title-only .task-meta,
@@ -293,6 +294,7 @@ body{
       <button class="filter-btn active" id="tf-all" onclick="setTypeFilter('all')">すべて</button>
       <button class="filter-btn" id="tf-task" onclick="setTypeFilter('task')">📋 タスク</button>
       <button class="filter-btn" id="tf-event" onclick="setTypeFilter('event')">📅 イベント</button>
+      <button class="filter-btn" id="tf-test" onclick="setTypeFilter('test')">📝 テスト</button>
       <button class="filter-btn" id="f-title-only" onclick="toggleTitleOnly()" style="margin-left:auto">タイトルのみ</button>
     </div>
     <div class="filter-row">
@@ -421,6 +423,7 @@ body{
       <div class="priority-row">
         <button class="priority-btn" id="mt-task" onclick="setModalType('task')">📋 タスク</button>
         <button class="priority-btn" id="mt-event" onclick="setModalType('event')">📅 イベント</button>
+        <button class="priority-btn" id="mt-test" onclick="setModalType('test')">📝 テスト</button>
       </div>
     </div>
     <div class="form-row-btn">
@@ -486,7 +489,7 @@ function ensureTaskShape(t){
     deadline: t.deadline || '',
     priority: ['high','medium','low'].includes(t.priority) ? t.priority : 'medium',
     done: !!t.done,
-    type: t.type === 'event' ? 'event' : 'task',
+    type: ['event','test'].includes(t.type) ? t.type : 'task',
     subtasks: Array.isArray(t.subtasks) ? t.subtasks.map(st => ({
       id: st.id || Date.now() + Math.floor(Math.random()*10000),
       name: st.name || 'ひなタスク',
@@ -628,6 +631,7 @@ function renderList(){
     list.innerHTML = filtered.map(t => {
       const progress = taskProgress(t);
       const isEvent = t.type === 'event';
+      const isTest = t.type === 'test';
       return `
       <div class="task-row ${t.done?'done':''}" id="task-${t.id}">
         <input type="checkbox" class="task-check" ${t.done?'checked':''} onchange="toggleDone(${t.id})">
@@ -635,7 +639,7 @@ function renderList(){
           <div class="task-name ${t.done?'done':''}">${escapeHtml(t.name)}</div>
           ${t.note ? `<div class="task-note">${escapeHtml(t.note)}</div>` : ''}
           <div class="task-meta">
-            <span class="${isEvent?'event-badge':'task-badge'}">${isEvent?'📅 イベント':'📋 タスク'}</span>
+            <span class="${isEvent?'event-badge':isTest?'test-badge':'task-badge'}">${isEvent?'📅 イベント':isTest?'📝 テスト':'📋 タスク'}</span>
             <span class="priority-badge" style="background:${PRIORITIES[t.priority||'medium'].bg};color:${PRIORITIES[t.priority||'medium'].color}">
               ${PRIORITIES[t.priority||'medium'].label}
             </span>
@@ -685,8 +689,9 @@ function renderList(){
           <div class="form-group">
             <label class="form-label">種類</label>
             <select class="form-select" id="form-type" style="margin-bottom:0">
-              <option value="task" ${(!current || current?.type!=='event')?'selected':''}>📋 タスク</option>
+              <option value="task" ${(!current || current?.type!=='event' && current?.type!=='test')?'selected':''}>📋 タスク</option>
               <option value="event" ${(current?.type==='event')?'selected':''}>📅 イベント</option>
+              <option value="test" ${(current?.type==='test')?'selected':''}>📝 テスト</option>
             </select>
           </div>
         </div>
@@ -1101,7 +1106,7 @@ function setFilter(f){
 
 function setTypeFilter(tf){
   typeFilter = tf;
-  ['all','task','event'].forEach(x => {
+  ['all','task','event','test'].forEach(x => {
     document.getElementById('tf-'+x).className = 'filter-btn' + (tf===x ? ' active' : '');
   });
   render();
@@ -1382,21 +1387,23 @@ function setModalType(tp){
 function updateModalTypeBtns(){
   const taskBtn = document.getElementById('mt-task');
   const eventBtn = document.getElementById('mt-event');
-  if(modalType === 'task'){
-    taskBtn.style.border = '2px solid #7d5bd9';
-    taskBtn.style.background = '#f5efff';
-    taskBtn.style.color = '#7d5bd9';
-    eventBtn.style.border = '2px solid #e0eaf4';
-    eventBtn.style.background = '#fff';
-    eventBtn.style.color = '#aaa';
-  } else {
-    eventBtn.style.border = '2px solid #5b8bd9';
-    eventBtn.style.background = '#eef8ff';
-    eventBtn.style.color = '#5b8bd9';
-    taskBtn.style.border = '2px solid #e0eaf4';
-    taskBtn.style.background = '#fff';
-    taskBtn.style.color = '#aaa';
-  }
+  const testBtn = document.getElementById('mt-test');
+  const btns = [
+    { btn: taskBtn, type: 'task', border: '#7d5bd9', bg: '#f5efff', color: '#7d5bd9' },
+    { btn: eventBtn, type: 'event', border: '#5b8bd9', bg: '#eef8ff', color: '#5b8bd9' },
+    { btn: testBtn, type: 'test', border: '#c98b20', bg: '#fff9e8', color: '#c98b20' }
+  ];
+  btns.forEach(({ btn, type, border, bg, color }) => {
+    if (modalType === type) {
+      btn.style.border = `2px solid ${border}`;
+      btn.style.background = bg;
+      btn.style.color = color;
+    } else {
+      btn.style.border = '2px solid #e0eaf4';
+      btn.style.background = '#fff';
+      btn.style.color = '#aaa';
+    }
+  });
 }
 function modalAdd(){
   const name = document.getElementById('modal-name').value.trim();
